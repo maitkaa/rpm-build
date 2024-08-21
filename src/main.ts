@@ -77,6 +77,22 @@ async function run(): Promise<void> {
       'HEAD'
     ])
 
+    // Log all inputs
+    core.info('Action inputs:')
+    core.info(`spec_template: ${specTemplate}`)
+    core.info(`version: ${version}`)
+    core.info(`release: ${release}`)
+    core.info(`approot: ${approot}`)
+    core.info(`project: ${project}`)
+    core.info(`deploy_dir: ${deployDir}`)
+    core.info(`run_lint: ${runLint}`)
+    core.info(`rpmmacros_template: ${rpmmacrosTemplate}`)
+
+    // Log important paths
+    core.info(`Workspace: ${workspace}`)
+    core.info(`Build Root: ${buildRoot}`)
+    core.info(`Generated Spec: ${generatedSpec}`)
+
     // Build RPM
     const rpmbuildArgs = [
       '-bb',
@@ -93,7 +109,20 @@ async function run(): Promise<void> {
       '-v',
       generatedSpec
     ]
-    await exec.exec('rpmbuild', rpmbuildArgs)
+
+    core.info('Running rpmbuild command:')
+    core.info(`rpmbuild ${rpmbuildArgs.join(' ')}`)
+
+    const rpmbuildOutput = await exec.exec('rpmbuild', rpmbuildArgs, {
+      listeners: {
+        stdout: data => {
+          core.info(data.toString())
+        },
+        stderr: data => {
+          core.error(data.toString())
+        }
+      }
+    })
 
     // Find built RPM
     const rpmDir = path.join(workspace, deployDir, 'RPMS', 'noarch')
@@ -111,7 +140,10 @@ async function run(): Promise<void> {
     core.setOutput('rpm_dir_path', rpmDir)
     core.setOutput('spec_file', generatedSpec)
   } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
+    // @ts-ignore
+    core.setFailed(`Action failed with error: ${error.message}`)
+    // @ts-ignore
+    core.error(error.stack)
   }
 }
 
