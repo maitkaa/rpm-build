@@ -1,4 +1,4 @@
-name: 'RPM Build'
+name: 'RPM Build with spec template'
 description: 'Build RPMs from spec file template.'
 author: 'Mait Kaasik'
 inputs:
