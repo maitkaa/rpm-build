@@ -1,36 +1,22 @@
 FROM rockylinux:9
 
-# Install Node.js and npm
-RUN dnf install -y nodejs npm
+# Install necessary tools
+RUN dnf install -y nodejs npm git rpm-build rpmlint
 
-# Install necessary RPM build tools and other dependencies
-RUN dnf install -y dnf-plugins-core && \
-    dnf config-manager --set-enabled crb && \
-    dnf config-manager --set-enabled devel && \
-    dnf install -y \
-    git \
-    rpm-build \
-    epel-release \
-    rpmlint \
-    rpmdevtools \
-    gcc \
-    make \
-    && dnf clean all
+# Set up the action directory
+WORKDIR /action
 
-# Create a directory for the action code
-RUN mkdir -p /usr/src/app
-
-# Set the working directory inside the container
-WORKDIR /usr/src/app
-
+# Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
 # Copy the rest of your action's source code
 COPY . .
 
+# Build your action (if using TypeScript)
 RUN npm run build
 
-ENTRYPOINT ["node", "/usr/src/app/dist/main.js"]
+# Run the action
+ENTRYPOINT ["node", "/action/dist/index.js"]

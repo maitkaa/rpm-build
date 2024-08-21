@@ -16,7 +16,7 @@
     "rpmbuild"
   ],
   "exports": {
-    ".": "./dist/main.js"
+    ".": "./dist/index.js"
   },
   "engines": {
     "node": ">=20"
@@ -28,11 +28,11 @@
     "format:write": "npx prettier --write .",
     "format:check": "npx prettier --check .",
     "lint": "npx eslint . -c ./.github/linters/.eslintrc.yml",
-    "package": "npx ncc build src/main.ts -o dist --source-map --license licenses.txt",
+    "package": "npx ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "package:watch": "npm run package -- --watch",
     "test": "npx jest",
     "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package",
-    "build": "tsc"
+    "build": "tsc src/index.ts --outDir dist --outFile index.js"
   },
   "license": "MIT",
   "jest": {
