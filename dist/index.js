@@ -26206,7 +26206,8 @@ async function run() {
         await io.mkdirP(buildRoot);
         await io.mkdirP(specDir);
         // Generate spec file
-        const specContent = fs.readFileSync(specTemplate, 'utf8')
+        const specContent = fs
+            .readFileSync(specTemplate, 'utf8')
             .replace(/\$VERSION/g, version)
             .replace(/\$RELEASE/g, release)
             .replace(/\$BRAND/g, '')
@@ -26217,7 +26218,8 @@ async function run() {
         const homeDir = process.env.HOME || '';
         const rpmmacrosPath = path.join(homeDir, '.rpmmacros');
         if (rpmmacrosTemplate && fs.existsSync(rpmmacrosTemplate)) {
-            const rpmmacrosContent = fs.readFileSync(rpmmacrosTemplate, 'utf8')
+            const rpmmacrosContent = fs
+                .readFileSync(rpmmacrosTemplate, 'utf8')
                 .replace(/\$DEPLOYMENTROOT/g, workspace);
             fs.writeFileSync(rpmmacrosPath, rpmmacrosContent);
         }
@@ -26238,22 +26240,36 @@ async function run() {
         // Create source tarball
         const sourceDir = path.join(workspace, deployDir, 'SOURCES');
         await io.mkdirP(sourceDir);
-        await exec.exec('git', ['archive', '--output', `${sourceDir}/${project}-${version}.tar.gz`, '--prefix', `${project}-${version}/`, 'HEAD']);
+        await exec.exec('git', [
+            'archive',
+            '--output',
+            `${sourceDir}/${project}-${version}.tar.gz`,
+            '--prefix',
+            `${project}-${version}/`,
+            'HEAD'
+        ]);
         // Build RPM
         const rpmbuildArgs = [
             '-bb',
-            '--define', `_tmppath /tmp`,
-            '--define', `_topdir ${workspace}/${deployDir}`,
-            '--define', `_appdir ${approot}`,
-            '--define', `_app ${project}`,
-            '--buildroot', buildRoot,
+            '--define',
+            `_tmppath /tmp`,
+            '--define',
+            `_topdir ${workspace}/${deployDir}`,
+            '--define',
+            `_appdir ${approot}`,
+            '--define',
+            `_app ${project}`,
+            '--buildroot',
+            buildRoot,
             '-v',
             generatedSpec
         ];
         await exec.exec('rpmbuild', rpmbuildArgs);
         // Find built RPM
         const rpmDir = path.join(workspace, deployDir, 'RPMS', 'noarch');
-        const rpmFiles = fs.readdirSync(rpmDir).filter(file => file.endsWith('.rpm'));
+        const rpmFiles = fs
+            .readdirSync(rpmDir)
+            .filter(file => file.endsWith('.rpm'));
         if (rpmFiles.length === 0) {
             throw new Error('No RPM file found after build');
         }

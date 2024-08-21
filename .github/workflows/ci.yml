@@ -114,7 +114,3 @@ jobs:
           echo "RPM Name: ${{ steps.test-action.outputs.rpm_name }}"
           echo "RPM Directory: ${{ steps.test-action.outputs.rpm_dir_path }}"
           echo "Spec File: ${{ steps.test-action.outputs.spec_file }}"
-
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
