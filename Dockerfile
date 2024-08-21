@@ -16,7 +16,7 @@ RUN npm ci
 COPY . .
 
 # Build your action (if using TypeScript)
-RUN npm run package
+RUN npm run build
 
 # Run the action
-ENTRYPOINT ["node", "/action/dist/index.js"]
+ENTRYPOINT ["node", "/lib/main.js"]
