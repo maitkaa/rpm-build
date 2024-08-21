@@ -1,14 +1,36 @@
-# Set the base image to use for subsequent instructions
-FROM node:slim
+FROM rockylinux:9
+
+# Install Node.js and npm
+RUN dnf install -y nodejs npm
+
+# Install necessary RPM build tools and other dependencies
+RUN dnf install -y dnf-plugins-core && \
+    dnf config-manager --set-enabled crb && \
+    dnf config-manager --set-enabled devel && \
+    dnf install -y \
+    git \
+    rpm-build \
+    epel-release \
+    rpmlint \
+    rpmdevtools \
+    gcc \
+    make \
+    && dnf clean all
 
 # Create a directory for the action code
 RUN mkdir -p /usr/src/app
 
-# Set the working directory inside the container.
+# Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Copy the repository contents to the container
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of your action's source code
 COPY . .
 
-# Run the specified command within the container
-ENTRYPOINT ["node", "/usr/src/app/dist/index.js"]
+RUN npm run build
+
+ENTRYPOINT ["node", "/usr/src/app/dist/main.js"]

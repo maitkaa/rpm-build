@@ -1,21 +1,53 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
-
-# Define your inputs here.
+name: 'RPM Build'
+description: 'Build RPMs from spec file template.'
+author: 'Mait Kaasik'
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  spec_template:
+    description: 'Path to the spec file template'
     required: true
-    default: '1000'
+  version:
+    description: 'Version for the RPM (defaults to current timestamp)'
+    required: false
+  release:
+    description: 'Release number for the RPM'
+    required: true
+  approot:
+    description: 'Application root directory'
+    required: true
+  project:
+    description: 'Project name'
+    required: true
+  deploy_dir:
+    description: 'Deployment directory'
+    required: false
+    default: 'deploy'
+  run_lint:
+    description: 'Whether to run rpmlint on the generated spec file'
+    required: false
+    default: 'true'
+  rpmmacros_template:
+    description: 'Path to the .rpmmacros template file'
+    required: false
 
-# Define your outputs here.
 outputs:
-  time:
-    description: 'Your output description here'
+  rpm_path:
+    description: 'Path to the built RPM file'
+  rpm_name:
+    description: 'Name of the built RPM file'
+  rpm_dir_path:
+    description: 'Path to RPMS directory'
+  spec_file:
+    description: 'Path to the generated spec file'
 
 runs:
-  using: docker
-  image: Dockerfile
+  using: 'docker'
+  image: 'Dockerfile'
   env:
-    INPUT_MILLISECONDS: ${{ inputs.milliseconds }}
+    APPROOT: ${{ inputs.approot }}
+    PROJECT: ${{ inputs.project }}
+    RELEASE: ${{ inputs.release }}
+    DEPLOY_DIR: ${{ inputs.deploy_dir }}
+
+branding:
+  icon: 'package'
+  color: 'yellow'
