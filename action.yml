@@ -30,15 +30,6 @@ inputs:
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  args:
-    - ${{ inputs.spec_template }}
-    - ${{ inputs.version }}
-    - ${{ inputs.release }}
-    - ${{ inputs.approot }}
-    - ${{ inputs.project }}
-    - ${{ inputs.deploy_dir }}
-    - ${{ inputs.run_lint }}
-    - ${{ inputs.rpmmacros_template }}
 
 outputs:
   rpm_path:
