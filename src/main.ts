@@ -113,7 +113,7 @@ async function run(): Promise<void> {
     core.info('Running rpmbuild command:')
     core.info(`rpmbuild ${rpmbuildArgs.join(' ')}`)
 
-    const rpmbuildOutput = await exec.exec('rpmbuild', rpmbuildArgs, {
+    await exec.exec('rpmbuild', rpmbuildArgs, {
       listeners: {
         stdout: data => {
           core.info(data.toString())
@@ -139,10 +139,8 @@ async function run(): Promise<void> {
     core.setOutput('rpm_name', rpmFiles[0])
     core.setOutput('rpm_dir_path', rpmDir)
     core.setOutput('spec_file', generatedSpec)
-  } catch (error) {
-    // @ts-ignore
+  } catch (error: any) {
     core.setFailed(`Action failed with error: ${error.message}`)
-    // @ts-ignore
     core.error(error.stack)
   }
 }

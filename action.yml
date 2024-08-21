@@ -1,13 +1,12 @@
-name: 'RPM Build with spec template'
+name: 'RPM Build'
 description: 'Build RPMs from spec file template.'
-author: 'Mait Kaasik'
 inputs:
   spec_template:
     description: 'Path to the spec file template'
     required: true
   version:
-    description: 'Version for the RPM (defaults to current timestamp)'
-    required: false
+    description: 'Version for the RPM'
+    required: true
   release:
     description: 'Release number for the RPM'
     required: true
@@ -19,8 +18,7 @@ inputs:
     required: true
   deploy_dir:
     description: 'Deployment directory'
-    required: false
-    default: 'deploy'
+    required: true
   run_lint:
     description: 'Whether to run rpmlint on the generated spec file'
     required: false
@@ -28,6 +26,19 @@ inputs:
   rpmmacros_template:
     description: 'Path to the .rpmmacros template file'
     required: false
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.spec_template }}
+    - ${{ inputs.version }}
+    - ${{ inputs.release }}
+    - ${{ inputs.approot }}
+    - ${{ inputs.project }}
+    - ${{ inputs.deploy_dir }}
+    - ${{ inputs.run_lint }}
+    - ${{ inputs.rpmmacros_template }}
 
 outputs:
   rpm_path:
@@ -38,16 +49,3 @@ outputs:
     description: 'Path to RPMS directory'
   spec_file:
     description: 'Path to the generated spec file'
-
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  env:
-    APPROOT: ${{ inputs.approot }}
-    PROJECT: ${{ inputs.project }}
-    RELEASE: ${{ inputs.release }}
-    DEPLOY_DIR: ${{ inputs.deploy_dir }}
-
-branding:
-  icon: 'package'
-  color: 'yellow'
