@@ -1,7 +1,7 @@
 FROM rockylinux:9
 
 # Install necessary tools
-RUN dnf install -y nodejs npm git rpm-build rpmlint
+RUN dnf install -y nodejs npm git rpm-build rpmlint rpmdevtools
 
 # Set up the action directory
 WORKDIR /action
@@ -16,7 +16,7 @@ RUN npm ci
 COPY . .
 
 # Build your action (if using TypeScript)
-RUN npm run build
+RUN npm run package
 
 # Run the action
 ENTRYPOINT ["node", "/action/dist/index.js"]
