@@ -54,7 +54,7 @@ jobs:
           - 5001:5000
 
     env:
-      TEST_TAG: localhost:5001/actions/container-toolkit-action:latest
+      TEST_TAG: localhost:5001/rpm-build-action:latest
 
     steps:
       - name: Checkout
@@ -98,7 +98,22 @@ jobs:
         id: test-action
         uses: ./
         with:
-          milliseconds: 2000
+            spec_template: 'path/to/your/spec-template.spec'
+            version: '1.0.0'
+            release: '1'
+            approot: '/srv/www'
+            project: 'your-project-name'
+            deploy_dir: 'deploy'
+            run_lint: 'true'
+            rpmmacros_template: 'path/to/your/rpmmacros-template'
+
+      - name: Print Outputs
+        id: output
+        run: |
+          echo "RPM Path: ${{ steps.test-action.outputs.rpm_path }}"
+          echo "RPM Name: ${{ steps.test-action.outputs.rpm_name }}"
+          echo "RPM Directory: ${{ steps.test-action.outputs.rpm_dir_path }}"
+          echo "Spec File: ${{ steps.test-action.outputs.spec_file }}"
 
       - name: Print Output
         id: output
