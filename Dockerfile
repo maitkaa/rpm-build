@@ -1,22 +1,11 @@
 FROM rockylinux:9
 
-# Install necessary tools
-RUN dnf install -y nodejs npm git rpm-build rpmlint rpmdevtools
+RUN dnf install -y dnf-plugins-core && \
+    dnf config-manager --set-enabled crb && \
+    dnf config-manager --set-enabled devel && \
+    dnf install -y git rpm-build epel-release rpmlint rpmdevtools
 
-# Set up the action directory
-WORKDIR /action
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Copy package.json and package-lock.json (if available)
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci
-
-# Copy the rest of your action's source code
-COPY . .
-
-# Build your action (if using TypeScript)
-RUN npm run build
-
-# Run the action
-ENTRYPOINT ["node", "/lib/main.js"]
+ENTRYPOINT ["/entrypoint.sh"]

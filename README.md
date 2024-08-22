@@ -1,81 +1,72 @@
-# RPM Build GitHub Action
+# Custom RPM Build Action
 
-This action builds RPMs from a spec file template. It's designed to be flexible
-and can be used in various CI/CD pipelines for projects that require RPM
-packaging.
+This GitHub Action builds RPM packages using a custom spec template and RPM macros. It's designed to work with PHP applications and supports customizable build environments.
+
+## Features
+
+- Builds RPM packages from a spec template
+- Supports custom RPM macros
+- Configurable application root, project name, and deployment directory
+- Optional rpmlint check
+- Outputs paths and names of generated files for easy artifact handling
 
 ## Inputs
 
-| Input                | Description                                       | Required | Default           |
-| -------------------- | ------------------------------------------------- | -------- | ----------------- |
-| `spec_template`      | Path to the spec file template                    | Yes      | -                 |
-| `version`            | Version for the RPM                               | No       | Current timestamp |
-| `release`            | Release number for the RPM                        | Yes      | -                 |
-| `approot`            | Application root directory                        | Yes      | -                 |
-| `project`            | Project name                                      | Yes      | -                 |
-| `deploy_dir`         | Deployment directory                              | No       | 'deploy'          |
-| `run_lint`           | Whether to run rpmlint on the generated spec file | No       | 'true'            |
-| `rpmmacros_template` | Path to the .rpmmacros template file              | No       | -                 |
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `spec_template` | Path to the spec template file | Yes | - |
+| `version` | RPM version | Yes | - |
+| `release` | RPM release number | Yes | - |
+| `approot` | Application root directory | Yes | - |
+| `project` | Project name | Yes | - |
+| `deploy_dir` | Deployment directory | Yes | - |
+| `rpmmacros_template` | Path to the .rpmmacros template file | Yes | - |
+| `run_lint` | Whether to run rpmlint | No | `'true'` |
 
 ## Outputs
 
-| Output         | Description                     |
-| -------------- | ------------------------------- |
-| `rpm_path`     | Path to the built RPM file      |
-| `rpm_name`     | Name of the built RPM file      |
-| `rpm_dir_path` | Path to RPMS directory          |
-| `spec_file`    | Path to the generated spec file |
+| Output | Description |
+|--------|-------------|
+| `spec_file` | Path to the generated spec file |
+| `rpm_path` | Path to the built RPM file |
+| `rpm_name` | Name of the built RPM file |
+| `rpm_dir_path` | Path to the directory containing the built RPM |
 
 ## Usage
 
-Here's an example of how to use this action in your workflow:
+To use this action in your workflow, you can include it as a step:
 
 ```yaml
-name: Build RPM
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
 jobs:
-  build:
+  build-rpm:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build RPM
-        uses: your-github-username/rpm-build-action@v1
+        uses: maitkaa/rpm-build@v1.0.1
         with:
-          spec_template: 'path/to/your/spec-template.spec'
-          version: '1.0.0'
-          release: '1'
-          approot: '/opt/myapp'
-          project: 'myproject'
-          deploy_dir: 'rpmbuild'
+          spec_template: ${{ github.workspace }}/deploy/SPECS/project.spec-template
+          version: ${{ env.VERSION }}
+          release: ${{ env.RELEASE }}
+          approot: /srv/www
+          project: MyProject
+          deploy_dir: deploy
+          rpmmacros_template: ${{ github.workspace }}/deploy/bin/.rpmmacros-template
           run_lint: 'true'
-          rpmmacros_template: 'path/to/your/rpmmacros-template'
-
-      - name: Upload RPM
-        uses: actions/upload-artifact@v3
-        with:
-          name: rpm-package
-          path: ${{ steps.build.outputs.rpm_path }}
 ```
 
 ## Requirements
 
-- This action is designed to run on a Linux environment with RPM tools
-  installed.
-- The runner should have `git`, `rpmbuild`, and `rpmlint` (if linting is
-  enabled) installed.
+This action runs in a Docker container based on Rocky Linux 9. It installs the necessary RPM build tools and dependencies within the container.
+
+## Customization
+
+You can customize the build environment by modifying the `Dockerfile` included in this action. If you need additional packages or configurations, add them to the `Dockerfile`.
 
 ## Contributing
 
-Contributions to improve this action are welcome. Please feel free to submit a
-Pull Request.
+Contributions to improve this action are welcome. Please feel free to submit issues or pull requests.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for
-details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

@@ -1,14 +1,16 @@
-name: 'RPM Build'
-description: 'Build RPMs from spec file template.'
+name: 'RPM build with spec template'
+description: 'Build RPMs from spec template with custom macros'
+author: 'Mait Kaasik'
+
 inputs:
   spec_template:
-    description: 'Path to the spec file template'
+    description: 'Path to the spec template file'
     required: true
   version:
-    description: 'Version for the RPM'
+    description: 'RPM version'
     required: true
   release:
-    description: 'Release number for the RPM'
+    description: 'RPM release number'
     required: true
   approot:
     description: 'Application root directory'
@@ -19,24 +21,28 @@ inputs:
   deploy_dir:
     description: 'Deployment directory'
     required: true
-  run_lint:
-    description: 'Whether to run rpmlint on the generated spec file'
-    required: false
-    default: 'true'
   rpmmacros_template:
     description: 'Path to the .rpmmacros template file'
+    required: true
+  run_lint:
+    description: 'Whether to run rpmlint'
     required: false
-
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
+    default: 'true'
 
 outputs:
+  spec_file:
+    description: 'Path to the generated spec file'
   rpm_path:
     description: 'Path to the built RPM file'
   rpm_name:
     description: 'Name of the built RPM file'
   rpm_dir_path:
-    description: 'Path to RPMS directory'
-  spec_file:
-    description: 'Path to the generated spec file'
+    description: 'Path to the directory containing the built RPM'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+
+branding:
+  icon: 'package'
+  color: 'yellow'
