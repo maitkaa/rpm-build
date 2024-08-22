@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -e
+set -ex
 
-echo "Starting RPM build process with enhanced debugging..."
+echo "Starting RPM build process"
 
 # Set variables from inputs
 SPEC_TEMPLATE="$INPUT_SPEC_TEMPLATE"
@@ -62,10 +62,16 @@ cat ~/.rpmmacros
 
 # Create version file
 echo "Creating version file..."
-mkdir -p "$RPM_BUILD_ROOT$APPROOT/version"
-echo "${PROJECT}-${VERSION}-${RELEASE}" > "$RPM_BUILD_ROOT$APPROOT/version/version.txt"
+mkdir -p "$RPM_BUILD_ROOT$APPROOT"
+echo "${PROJECT}-${VERSION}-${RELEASE}" > "$RPM_BUILD_ROOT$APPROOT/version"
 echo "Version file contents:"
-cat "$RPM_BUILD_ROOT$APPROOT/version/version.txt"
+cat "$RPM_BUILD_ROOT$APPROOT/version"
+
+# Debug: List contents of important directories
+echo "Contents of $RPM_BUILD_ROOT:"
+ls -la "$RPM_BUILD_ROOT"
+echo "Contents of $RPM_BUILD_ROOT$APPROOT:"
+ls -la "$RPM_BUILD_ROOT$APPROOT"
 
 # Run rpmlint if enabled
 if [ "$RUN_LINT" = "true" ]; then
@@ -74,14 +80,15 @@ if [ "$RUN_LINT" = "true" ]; then
 fi
 
 echo "Building RPM..."
-rpmbuild -bb --define "_tmppath /tmp" \
-             --define "_topdir $WORKSPACE/$DEPLOY_DIR" \
-             --define "_builddir $BUILD_DIR" \
-             --define "_rpmdir $WORKSPACE/$DEPLOY_DIR/RPMS" \
-             --define "_srcrpmdir $WORKSPACE/$DEPLOY_DIR/SRPMS" \
-             --define "_specdir $WORKSPACE/$DEPLOY_DIR/SPECS" \
-             "$GENERATED_SPEC" \
-             --buildroot="$RPM_BUILD_ROOT"
+rpmbuild -bb -v \
+    --define "_tmppath /tmp" \
+    --define "_topdir $WORKSPACE/$DEPLOY_DIR" \
+    --define "_builddir $BUILD_DIR" \
+    --define "_rpmdir $WORKSPACE/$DEPLOY_DIR/RPMS" \
+    --define "_srcrpmdir $WORKSPACE/$DEPLOY_DIR/SRPMS" \
+    --define "_specdir $WORKSPACE/$DEPLOY_DIR/SPECS" \
+    "$GENERATED_SPEC" \
+    --buildroot="$RPM_BUILD_ROOT"
 
 # Find the built RPM
 RPM_DIR="$WORKSPACE/$DEPLOY_DIR/RPMS/noarch"
