@@ -67,11 +67,19 @@ echo "${PROJECT}-${VERSION}-${RELEASE}" > "$RPM_BUILD_ROOT$APPROOT/version"
 echo "Version file contents:"
 cat "$RPM_BUILD_ROOT$APPROOT/version"
 
+# Copy necessary files to BUILDROOT
+echo "Copying files to BUILDROOT..."
+cp -R "$WORKSPACE/APP_mty" "$RPM_BUILD_ROOT$APPROOT/"
+cp -R "$WORKSPACE/framework" "$RPM_BUILD_ROOT$APPROOT/"
+cp -R "$WORKSPACE/mtt2" "$RPM_BUILD_ROOT$APPROOT/"
+
 # Debug: List contents of important directories
 echo "Contents of $RPM_BUILD_ROOT:"
 ls -la "$RPM_BUILD_ROOT"
 echo "Contents of $RPM_BUILD_ROOT$APPROOT:"
 ls -la "$RPM_BUILD_ROOT$APPROOT"
+echo "Contents of $RPM_BUILD_ROOT$APPROOT/APP_mty:"
+ls -la "$RPM_BUILD_ROOT$APPROOT/APP_mty"
 
 # Run rpmlint if enabled
 if [ "$RUN_LINT" = "true" ]; then
