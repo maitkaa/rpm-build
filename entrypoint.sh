@@ -2,6 +2,8 @@
 
 set -e
 
+echo "Starting RPM build process with enhanced debugging..."
+
 # Set variables from inputs
 SPEC_TEMPLATE="$INPUT_SPEC_TEMPLATE"
 VERSION="$INPUT_VERSION"
@@ -18,7 +20,24 @@ BUILD_DIR="$WORKSPACE/$DEPLOY_DIR/BUILD"
 RPM_BUILD_ROOT="$WORKSPACE/$DEPLOY_DIR/BUILDROOT"
 GENERATED_SPEC="$WORKSPACE/$DEPLOY_DIR/SPECS/${PROJECT}-${GITHUB_REF##*/}-$VERSION.spec"
 
-# Generate Spec File
+echo "Debug: Workspace is $WORKSPACE"
+echo "Debug: Current directory is $(pwd)"
+echo "Debug: Listing workspace contents:"
+ls -R $WORKSPACE
+
+echo "Debug: Environment variables:"
+env
+
+echo "Debug: SPEC_TEMPLATE=$SPEC_TEMPLATE"
+echo "Debug: GENERATED_SPEC=$GENERATED_SPEC"
+
+if [ ! -f "$SPEC_TEMPLATE" ]; then
+    echo "Error: Spec template file not found: $SPEC_TEMPLATE"
+    exit 1
+fi
+
+echo "Generating Spec File..."
+mkdir -p "$(dirname "$GENERATED_SPEC")"
 sed -e "s/\$VERSION/$VERSION/g" \
     -e "s/\$RELEASE/$RELEASE/g" \
     -e "s/\$BRAND//g" \
@@ -29,7 +48,12 @@ sed -e "s/\$VERSION/$VERSION/g" \
 echo "Generated spec file:"
 cat "$GENERATED_SPEC"
 
-# Create rpmmacros
+echo "Creating rpmmacros..."
+if [ ! -f "$RPMMACROS_TEMPLATE" ]; then
+    echo "Error: RPM macros template file not found: $RPMMACROS_TEMPLATE"
+    exit 1
+fi
+
 sed "s#\$DEPLOYMENTROOT#$WORKSPACE#g" "$RPMMACROS_TEMPLATE" > ~/.rpmmacros
 echo "Generated .rpmmacros:"
 cat ~/.rpmmacros
@@ -40,7 +64,7 @@ if [ "$RUN_LINT" = "true" ]; then
     rpmlint "$GENERATED_SPEC"
 fi
 
-# Build RPM
+echo "Building RPM..."
 mkdir -p "$RPM_BUILD_ROOT"
 rpmbuild -bb --define "_tmppath /tmp" "$GENERATED_SPEC" --buildroot="$RPM_BUILD_ROOT"
 
@@ -48,6 +72,9 @@ rpmbuild -bb --define "_tmppath /tmp" "$GENERATED_SPEC" --buildroot="$RPM_BUILD_
 RPM_DIR="$WORKSPACE/RPMS/noarch"
 RPM_NAME=$(ls "$RPM_DIR" | grep ".rpm$" | head -n 1)
 RPM_PATH="$RPM_DIR/$RPM_NAME"
+
+echo "Debug: RPM build completed. Listing RPM directory contents:"
+ls -l "$RPM_DIR"
 
 # Set outputs
 echo "spec_file=$GENERATED_SPEC" >> $GITHUB_OUTPUT
