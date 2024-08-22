@@ -4,19 +4,6 @@ set -e
 
 echo "Starting RPM build process"
 
-# Determine the actual workspace
-if [ -d "/github/workspace" ]; then
-    WORKSPACE="/github/workspace"
-elif [ -d "/workspace" ]; then
-    WORKSPACE=$(pwd)
-else
-    echo "Error: Unable to determine workspace directory"
-    exit 1
-fi
-
-echo "Debug: Determined workspace is $WORKSPACE"
-echo "Debug: Current directory is $(pwd)"
-
 # Set variables from inputs
 SPEC_TEMPLATE="$INPUT_SPEC_TEMPLATE"
 VERSION="$INPUT_VERSION"
@@ -28,12 +15,10 @@ RPMMACROS_TEMPLATE="$INPUT_RPMMACROS_TEMPLATE"
 RUN_LINT="$INPUT_RUN_LINT"
 
 # Set up environment variables
+WORKSPACE=$(pwd)
 BUILD_DIR="$WORKSPACE/$DEPLOY_DIR/BUILD"
-RPM_BUILD_ROOT="$WORKSPACE/$DEPLOY_DIR/BUILDROOT"
+RPM_BUILD_ROOT="$BUILD_DIR/${PROJECT}-${GITHUB_REF##*/}-$VERSION"
 GENERATED_SPEC="$WORKSPACE/$DEPLOY_DIR/SPECS/${PROJECT}-${GITHUB_REF##*/}-$VERSION.spec"
-
-echo "Debug: Listing workspace contents:"
-ls -R $WORKSPACE
 
 echo "Debug: Environment variables:"
 env
@@ -53,6 +38,7 @@ sed -e "s/\$VERSION/$VERSION/g" \
     -e "s/\$BRAND//g" \
     -e "s#\$APPROOT#$APPROOT#g" \
     -e "s#\$BUILDROOT#$RPM_BUILD_ROOT#g" \
+    -e "s#\$BUILD#$BUILD_DIR#g" \
     "$SPEC_TEMPLATE" > "$GENERATED_SPEC"
 
 echo "Generated spec file:"
@@ -68,6 +54,10 @@ sed "s#\$DEPLOYMENTROOT#$WORKSPACE#g" "$RPMMACROS_TEMPLATE" > ~/.rpmmacros
 echo "Generated .rpmmacros:"
 cat ~/.rpmmacros
 
+# Ensure necessary directories exist
+mkdir -p "$RPM_BUILD_ROOT$APPROOT/version"
+echo "$VERSION" > "$RPM_BUILD_ROOT$APPROOT/version/version.txt"
+
 # Run rpmlint if enabled
 if [ "$RUN_LINT" = "true" ]; then
     echo "Running rpmlint..."
@@ -75,11 +65,13 @@ if [ "$RUN_LINT" = "true" ]; then
 fi
 
 echo "Building RPM..."
-mkdir -p "$RPM_BUILD_ROOT"
-rpmbuild -bb --define "_tmppath /tmp" "$GENERATED_SPEC" --buildroot="$RPM_BUILD_ROOT"
+rpmbuild -bb --define "_tmppath /tmp" \
+             --define "_topdir $WORKSPACE/$DEPLOY_DIR" \
+             "$GENERATED_SPEC" \
+             --buildroot="$RPM_BUILD_ROOT"
 
 # Find the built RPM
-RPM_DIR="$WORKSPACE/RPMS/noarch"
+RPM_DIR="$WORKSPACE/$DEPLOY_DIR/RPMS/noarch"
 RPM_NAME=$(ls "$RPM_DIR" | grep ".rpm$" | head -n 1)
 RPM_PATH="$RPM_DIR/$RPM_NAME"
 
