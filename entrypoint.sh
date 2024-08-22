@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -ex
+set -e
 
-echo "Starting RPM build process"
+echo "Starting RPM build process..."
 
 # Set variables from inputs
 SPEC_TEMPLATE="$INPUT_SPEC_TEMPLATE"
@@ -20,14 +20,7 @@ BUILD_DIR="$WORKSPACE/$DEPLOY_DIR/BUILD"
 RPM_BUILD_ROOT="$BUILD_DIR/${PROJECT}-${GITHUB_REF##*/}-$VERSION"
 GENERATED_SPEC="$WORKSPACE/$DEPLOY_DIR/SPECS/${PROJECT}-${GITHUB_REF##*/}-$VERSION.spec"
 
-echo "Debug: Environment variables:"
-env
-
-echo "Debug: SPEC_TEMPLATE=$SPEC_TEMPLATE"
-echo "Debug: GENERATED_SPEC=$GENERATED_SPEC"
-echo "Debug: RPM_BUILD_ROOT=$RPM_BUILD_ROOT"
-
-# Create necessary directories
+echo "Creating necessary directories..."
 mkdir -p "$RPM_BUILD_ROOT$APPROOT"
 mkdir -p "$(dirname "$GENERATED_SPEC")"
 mkdir -p "$WORKSPACE/$DEPLOY_DIR/RPMS/noarch"
@@ -47,9 +40,6 @@ sed -e "s/\$VERSION/$VERSION/g" \
     -e "s#\$BUILD#$BUILD_DIR#g" \
     "$SPEC_TEMPLATE" > "$GENERATED_SPEC"
 
-echo "Generated spec file:"
-cat "$GENERATED_SPEC"
-
 echo "Creating rpmmacros..."
 if [ ! -f "$RPMMACROS_TEMPLATE" ]; then
     echo "Error: RPM macros template file not found: $RPMMACROS_TEMPLATE"
@@ -57,38 +47,22 @@ if [ ! -f "$RPMMACROS_TEMPLATE" ]; then
 fi
 
 sed "s#\$DEPLOYMENTROOT#$WORKSPACE#g" "$RPMMACROS_TEMPLATE" > ~/.rpmmacros
-echo "Generated .rpmmacros:"
-cat ~/.rpmmacros
 
-# Create version file
 echo "Creating version file..."
-mkdir -p "$RPM_BUILD_ROOT$APPROOT"
 echo "${PROJECT}-${VERSION}-${RELEASE}" > "$RPM_BUILD_ROOT$APPROOT/version"
-echo "Version file contents:"
-cat "$RPM_BUILD_ROOT$APPROOT/version"
 
-# Copy necessary files to BUILDROOT
 echo "Copying files to BUILDROOT..."
 cp -R "$WORKSPACE/APP_mty" "$RPM_BUILD_ROOT$APPROOT/"
 cp -R "$WORKSPACE/framework" "$RPM_BUILD_ROOT$APPROOT/"
 cp -R "$WORKSPACE/mtt2" "$RPM_BUILD_ROOT$APPROOT/"
 
-# Debug: List contents of important directories
-echo "Contents of $RPM_BUILD_ROOT:"
-ls -la "$RPM_BUILD_ROOT"
-echo "Contents of $RPM_BUILD_ROOT$APPROOT:"
-ls -la "$RPM_BUILD_ROOT$APPROOT"
-echo "Contents of $RPM_BUILD_ROOT$APPROOT/APP_mty:"
-ls -la "$RPM_BUILD_ROOT$APPROOT/APP_mty"
-
-# Run rpmlint if enabled
 if [ "$RUN_LINT" = "true" ]; then
     echo "Running rpmlint..."
     rpmlint "$GENERATED_SPEC"
 fi
 
 echo "Building RPM..."
-rpmbuild -bb -v \
+rpmbuild -bb \
     --define "_tmppath /tmp" \
     --define "_topdir $WORKSPACE/$DEPLOY_DIR" \
     --define "_builddir $BUILD_DIR" \
@@ -98,15 +72,10 @@ rpmbuild -bb -v \
     "$GENERATED_SPEC" \
     --buildroot="$RPM_BUILD_ROOT"
 
-# Find the built RPM
 RPM_DIR="$WORKSPACE/$DEPLOY_DIR/RPMS/noarch"
 RPM_NAME=$(ls "$RPM_DIR" | grep ".rpm$" | head -n 1)
 RPM_PATH="$RPM_DIR/$RPM_NAME"
 
-echo "Debug: RPM build completed. Listing RPM directory contents:"
-ls -l "$RPM_DIR"
-
-# Set outputs
 echo "spec_file=$GENERATED_SPEC" >> $GITHUB_OUTPUT
 echo "rpm_path=$RPM_PATH" >> $GITHUB_OUTPUT
 echo "rpm_name=$RPM_NAME" >> $GITHUB_OUTPUT
