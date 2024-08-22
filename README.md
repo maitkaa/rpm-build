@@ -1,6 +1,6 @@
-# Custom RPM Build Action
+# RPM Build Action
 
-This GitHub Action builds RPM packages using a custom spec template and RPM macros. It's designed to work with PHP applications and supports customizable build environments.
+This GitHub Action builds RPM packages using a custom spec template. It's designed to work with various applications and supports customizable build environments.
 
 ## Features
 
@@ -34,7 +34,7 @@ This GitHub Action builds RPM packages using a custom spec template and RPM macr
 
 ## Usage
 
-To use this action in your workflow, you can include it as a step:
+To use this action in your workflow, include it as a step:
 
 ```yaml
 jobs:
@@ -43,25 +43,87 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build RPM
-        uses: maitkaa/rpm-build@v1.0.1
+        uses: maitkaa/rpm-build@v1
         with:
-          spec_template: ${{ github.workspace }}/deploy/SPECS/project.spec-template
+          spec_template: ${{ github.workspace }}/packaging/myapp.spec-template
           version: ${{ env.VERSION }}
           release: ${{ env.RELEASE }}
-          approot: /srv/www
-          project: MyProject
-          deploy_dir: deploy
-          rpmmacros_template: ${{ github.workspace }}/deploy/bin/.rpmmacros-template
+          approot: /opt/myapp
+          project: myapp
+          deploy_dir: packaging
+          rpmmacros_template: ${{ github.workspace }}/packaging/.rpmmacros-template
           run_lint: 'true'
+```
+
+## Spec File Template
+
+Your spec file template should use variables that will be replaced during the build process. Here's a simple example:
+
+```spec
+Name: $PROJECT
+Version: $VERSION
+Release: $RELEASE
+Summary: My Application
+License: MIT
+BuildArch: noarch
+
+%define _app    $PROJECT
+%define _appdir $APPROOT
+%define buildroot $BUILDROOT
+
+%description
+This is my application.
+
+%prep
+# Prep steps here
+
+%build
+# Build steps here
+
+%install
+mkdir -p %{buildroot}%{_appdir}
+cp -R . %{buildroot}%{_appdir}
+
+%files
+%{_appdir}
+
+%changelog
+* Wed Aug 22 2024 Your Name <your.email@example.com> - $VERSION-$RELEASE
+- Initial RPM release
+```
+
+## RPM Macros Template
+
+Your `.rpmmacros-template` file might look like this:
+
+```
+%_topdir $DEPLOYMENTROOT/packaging
+%_tmppath /tmp
+```
+
+## Directory Structure
+
+Ensure your repository has a structure similar to this:
+
+```
+your-repo/
+├── .github/
+│   └── workflows/
+│       └── build-rpm.yml
+├── packaging/
+│   ├── myapp.spec-template
+│   └── .rpmmacros-template
+└── src/
+    └── (your application source files)
 ```
 
 ## Requirements
 
-This action runs in a Docker container based on Rocky Linux 9. It installs the necessary RPM build tools and dependencies within the container.
+This action runs in a Docker container based on Rocky Linux. It installs the necessary RPM build tools and dependencies within the container.
 
 ## Customization
 
-You can customize the build environment by modifying the `Dockerfile` included in this action. If you need additional packages or configurations, add them to the `Dockerfile`.
+You can customize the build environment by forking this action and modifying the `Dockerfile` and `entrypoint.sh` script.
 
 ## Contributing
 
