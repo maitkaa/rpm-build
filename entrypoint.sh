@@ -2,7 +2,20 @@
 
 set -e
 
-echo "Starting RPM build process with enhanced debugging..."
+echo "Starting RPM build process"
+
+# Determine the actual workspace
+if [ -d "/github/workspace" ]; then
+    WORKSPACE="/github/workspace"
+elif [ -d "/workspace" ]; then
+    WORKSPACE=$(pwd)
+else
+    echo "Error: Unable to determine workspace directory"
+    exit 1
+fi
+
+echo "Debug: Determined workspace is $WORKSPACE"
+echo "Debug: Current directory is $(pwd)"
 
 # Set variables from inputs
 SPEC_TEMPLATE="$INPUT_SPEC_TEMPLATE"
@@ -15,13 +28,10 @@ RPMMACROS_TEMPLATE="$INPUT_RPMMACROS_TEMPLATE"
 RUN_LINT="$INPUT_RUN_LINT"
 
 # Set up environment variables
-WORKSPACE="/github/workspace"
 BUILD_DIR="$WORKSPACE/$DEPLOY_DIR/BUILD"
 RPM_BUILD_ROOT="$WORKSPACE/$DEPLOY_DIR/BUILDROOT"
 GENERATED_SPEC="$WORKSPACE/$DEPLOY_DIR/SPECS/${PROJECT}-${GITHUB_REF##*/}-$VERSION.spec"
 
-echo "Debug: Workspace is $WORKSPACE"
-echo "Debug: Current directory is $(pwd)"
 echo "Debug: Listing workspace contents:"
 ls -R $WORKSPACE
 
