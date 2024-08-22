@@ -2,7 +2,7 @@
 
 set -e
 
-echo "Starting RPM build process"
+echo "Starting RPM build process with enhanced debugging..."
 
 # Set variables from inputs
 SPEC_TEMPLATE="$INPUT_SPEC_TEMPLATE"
@@ -25,6 +25,13 @@ env
 
 echo "Debug: SPEC_TEMPLATE=$SPEC_TEMPLATE"
 echo "Debug: GENERATED_SPEC=$GENERATED_SPEC"
+echo "Debug: RPM_BUILD_ROOT=$RPM_BUILD_ROOT"
+
+# Create necessary directories
+mkdir -p "$RPM_BUILD_ROOT$APPROOT"
+mkdir -p "$(dirname "$GENERATED_SPEC")"
+mkdir -p "$WORKSPACE/$DEPLOY_DIR/RPMS/noarch"
+mkdir -p "$WORKSPACE/$DEPLOY_DIR/SRPMS"
 
 if [ ! -f "$SPEC_TEMPLATE" ]; then
     echo "Error: Spec template file not found: $SPEC_TEMPLATE"
@@ -32,7 +39,6 @@ if [ ! -f "$SPEC_TEMPLATE" ]; then
 fi
 
 echo "Generating Spec File..."
-mkdir -p "$(dirname "$GENERATED_SPEC")"
 sed -e "s/\$VERSION/$VERSION/g" \
     -e "s/\$RELEASE/$RELEASE/g" \
     -e "s/\$BRAND//g" \
@@ -54,9 +60,12 @@ sed "s#\$DEPLOYMENTROOT#$WORKSPACE#g" "$RPMMACROS_TEMPLATE" > ~/.rpmmacros
 echo "Generated .rpmmacros:"
 cat ~/.rpmmacros
 
-# Ensure necessary directories exist
+# Create version file
+echo "Creating version file..."
 mkdir -p "$RPM_BUILD_ROOT$APPROOT/version"
-echo "$VERSION" > "$RPM_BUILD_ROOT$APPROOT/version/version.txt"
+echo "${PROJECT}-${VERSION}-${RELEASE}" > "$RPM_BUILD_ROOT$APPROOT/version/version.txt"
+echo "Version file contents:"
+cat "$RPM_BUILD_ROOT$APPROOT/version/version.txt"
 
 # Run rpmlint if enabled
 if [ "$RUN_LINT" = "true" ]; then
@@ -67,6 +76,10 @@ fi
 echo "Building RPM..."
 rpmbuild -bb --define "_tmppath /tmp" \
              --define "_topdir $WORKSPACE/$DEPLOY_DIR" \
+             --define "_builddir $BUILD_DIR" \
+             --define "_rpmdir $WORKSPACE/$DEPLOY_DIR/RPMS" \
+             --define "_srcrpmdir $WORKSPACE/$DEPLOY_DIR/SRPMS" \
+             --define "_specdir $WORKSPACE/$DEPLOY_DIR/SPECS" \
              "$GENERATED_SPEC" \
              --buildroot="$RPM_BUILD_ROOT"
 
