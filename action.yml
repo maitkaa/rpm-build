@@ -32,6 +32,9 @@ inputs:
     description: 'What folders should not be copied to build root'
     required: false
     default: '.git,.gitea,deploy,.gitignore'
+  environment:
+    description: 'What environment does app use'
+    required: true
 
 outputs:
   spec_file:
