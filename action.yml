@@ -28,6 +28,10 @@ inputs:
     description: 'Whether to run rpmlint'
     required: false
     default: 'true'
+  project_exclude_paths:
+    description: 'What folders should not be copied to build root'
+    required: false
+    default: '.git,.gitea,deploy,.gitignore'
 
 outputs:
   spec_file:

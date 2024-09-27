@@ -13,6 +13,7 @@ PROJECT="$INPUT_PROJECT"
 DEPLOY_DIR="$INPUT_DEPLOY_DIR"
 RPMMACROS_TEMPLATE="$INPUT_RPMMACROS_TEMPLATE"
 RUN_LINT="$INPUT_RUN_LINT"
+PROJECT_EXCLUDE_PATHS="$INPUT_PROJECT_EXCLUDE_PATHS"
 
 # Set up environment variables
 WORKSPACE=$(pwd)
@@ -52,9 +53,7 @@ echo "Creating version file..."
 echo "${PROJECT}-${VERSION}-${RELEASE}" > "$RPM_BUILD_ROOT$APPROOT/version"
 
 echo "Copying files to BUILDROOT..."
-cp -R "$WORKSPACE/APP_mty" "$RPM_BUILD_ROOT$APPROOT/"
-cp -R "$WORKSPACE/framework" "$RPM_BUILD_ROOT$APPROOT/"
-cp -R "$WORKSPACE/mtt2" "$RPM_BUILD_ROOT$APPROOT/"
+rsync -av --exclude={$PROJECT_EXCLUDE_PATHS} "$WORKSPACE/" "$RPM_BUILD_ROOT$APPROOT/"
 
 if [ "$RUN_LINT" = "true" ]; then
     echo "Running rpmlint..."
