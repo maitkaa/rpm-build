@@ -53,7 +53,7 @@ echo "Creating version file..."
 echo "${PROJECT}-${VERSION}-${RELEASE}" > "$RPM_BUILD_ROOT$APPROOT/version"
 
 echo "Copying files to BUILDROOT..."
-rsync -av --exclude={$PROJECT_EXCLUDE_PATHS} "$WORKSPACE/" "$RPM_BUILD_ROOT$APPROOT/"
+rsync -a --exclude={$PROJECT_EXCLUDE_PATHS} "$WORKSPACE/" "$RPM_BUILD_ROOT$APPROOT/"
 
 if [ "$RUN_LINT" = "true" ]; then
     echo "Running rpmlint..."
