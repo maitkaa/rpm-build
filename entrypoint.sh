@@ -57,7 +57,7 @@ echo "${PROJECT}-${VERSION}-${RELEASE}" > "$RPM_BUILD_ROOT$APPROOT/version"
 echo "Copying files to BUILDROOT..."
 
 echo $PROJECT_EXCLUDE_PATHS | tr ',' '\n' > excluded_paths.txt
-rsync -a --exclude-from={'excluded_paths.txt'} "$WORKSPACE/" "$RPM_BUILD_ROOT$APPROOT/"
+rsync -a --exclude-from=./excluded_paths.txt "$WORKSPACE/" "$RPM_BUILD_ROOT$APPROOT/"
 
 if [ "$RUN_LINT" = "true" ]; then
     echo "Running rpmlint..."
