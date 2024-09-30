@@ -56,10 +56,8 @@ echo "${PROJECT}-${VERSION}-${RELEASE}" > "$RPM_BUILD_ROOT$APPROOT/version"
 
 echo "Copying files to BUILDROOT..."
 
-excluded_paths=$(echo '.idea,.git,deploy' | awk -F',' '{for(i=1;i<=NF;i++) printf "%s%s%s%s", (i>1?",":""), "'\''", $i, "'\''"}; END {print ""}')
-echo "excluded_paths: $excluded_paths"
-
-rsync -a --exclude={$excluded_paths} "$WORKSPACE/" "$RPM_BUILD_ROOT$APPROOT/"
+echo $PROJECT_EXCLUDE_PATHS | tr ',' '\n' > excluded_paths.txt
+rsync -a --exclude-from={'excluded_paths.txt'} "$WORKSPACE/" "$RPM_BUILD_ROOT$APPROOT/"
 
 if [ "$RUN_LINT" = "true" ]; then
     echo "Running rpmlint..."
