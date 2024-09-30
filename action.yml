@@ -31,7 +31,7 @@ inputs:
   project_exclude_paths:
     description: 'What folders should not be copied to build root'
     required: false
-    default: "'.git','.gitea','deploy','.gitignore'"
+    default: '.git,.gitea,deploy,.gitignore,.idea'
   environment:
     description: 'What environment does app use'
     required: true
